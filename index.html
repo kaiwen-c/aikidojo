@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>AikiDojo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<style>
+/* ════════════════════════════════════════════════════════════════════════
+   RESET & BASE
+   ════════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:#f7f7f7;color:#1a1a1a;
+  font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;
+  overflow:hidden;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   APP SHELL — header/nav fixed, content area scrolls
+   ════════════════════════════════════════════════════════════════════════ */
+.app-wrap{height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(#eee 1px,transparent 1px),linear-gradient(90deg,#eee 1px,transparent 1px);
+  background-size:40px 40px;opacity:.5;
+}
+
+.hdr{position:relative;z-index:20;background:#fff;border-bottom:1px solid #eee;flex-shrink:0;}
+.hdr-in{max-width:1200px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;}
+.logo-row{display:flex;align-items:center;gap:14px;}
+.wordmark{font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:6px;line-height:1;}
+.wordmark span{color:#c0392b;}
+.tagline{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#888;margin-top:2px;font-weight:500;}
+
+.user-chip{display:flex;align-items:center;gap:10px;}
+.user-name{font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:2px;color:#444;}
+.logout-btn{
+  background:none;border:1.5px solid #eee;color:#888;cursor:pointer;
+  font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;
+  padding:6px 12px 4px;transition:all .15s;
+}
+.logout-btn:hover{border-color:#c0392b;color:#c0392b;}
+
+.nav{position:relative;z-index:20;background:#fff;border-bottom:1px solid #eee;flex-shrink:0;}
+.nav-in{max-width:1200px;margin:0 auto;padding:0 28px;display:flex;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.nav-in::-webkit-scrollbar{display:none;}
+.ntab{
+  background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;
+  font-family:'Bebas Neue',cursive;font-size:14px;letter-spacing:3px;color:#888;
+  padding:13px 18px 11px;white-space:nowrap;transition:all .15s;flex-shrink:0;
+}
+.ntab:hover{color:#1a1a1a;}
+.ntab.on{color:#c0392b;border-bottom-color:#c0392b;}
+
+.main{position:relative;z-index:1;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.main-inner{max-width:1200px;margin:0 auto;padding:28px 28px 48px;}
+
+.ftr{
+  flex-shrink:0;text-align:center;padding:12px;border-top:1px solid #eee;background:#fff;
+  font-family:'Bebas Neue',cursive;font-size:10px;letter-spacing:4px;color:#c0c0c0;position:relative;z-index:20;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY / SECTION HELPERS
+   ════════════════════════════════════════════════════════════════════════ */
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+.section-title{font-family:'Bebas Neue',cursive;font-size:30px;letter-spacing:4px;}
+.rule{height:1px;background:linear-gradient(to right,#c0392b,#eee 55%,transparent);margin:6px 0 22px;}
+.s-eyebrow{font-family:'Bebas Neue',cursive;font-size:10px;letter-spacing:3px;color:#888;margin-bottom:2px;}
+.s-title{font-weight:700;font-size:17px;margin-bottom:3px;}
+.s-meta{font-size:11px;color:#888;margin-bottom:8px;}
+.expand-btn{background:none;border:none;cursor:pointer;font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:#c0392b;padding:0;margin-top:7px;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   BUTTONS
+   ════════════════════════════════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;background:#1a1a1a;color:#fff;border:none;cursor:pointer;
+  font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:3px;padding:9px 18px 7px;
+  transition:background .15s;white-space:nowrap;
+}
+.btn:hover{background:#444;}
+.btn.red{background:#c0392b;}
+.btn.red:hover{background:#96281b;}
+.btn:disabled{background:#ccc;cursor:not-allowed;}
+.ghost{
+  background:transparent;color:#1a1a1a;border:1.5px solid #c0c0c0;
+  font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:3px;padding:8px 16px 6px;
+  cursor:pointer;transition:border-color .15s;
+}
+.ghost:hover{border-color:#1a1a1a;}
+.ghost.sm{padding:5px 11px 3px;font-size:11px;letter-spacing:2px;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   FORMS
+   ════════════════════════════════════════════════════════════════════════ */
+.card{background:#fff;border:1px solid #eee;border-left:3px solid #c0392b;padding:18px 20px 14px;margin-bottom:10px;}
+label{display:block;font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;color:#888;margin-bottom:4px;}
+input,textarea,select{
+  width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:#1a1a1a;background:#fff;
+  border:1.5px solid #eee;padding:8px 11px;outline:none;border-radius:0;appearance:none;
+}
+input:focus,textarea:focus,select:focus{border-color:#1a1a1a;}
+textarea{resize:vertical;}
+.fg{margin-bottom:13px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fa{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;}
+.field-error{font-size:11px;color:#c0392b;margin-top:4px;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   TAGS / PILLS
+   ════════════════════════════════════════════════════════════════════════ */
+.tag{
+  display:inline-block;margin:2px;padding:3px 9px;font-size:10px;font-weight:600;letter-spacing:.8px;
+  text-transform:uppercase;background:#f7f7f7;color:#444;border:1px solid #c0c0c0;cursor:pointer;transition:all .12s;
+}
+.tag:hover,.tag.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.att-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.att-pill{padding:5px 12px;font-size:12px;font-weight:500;border:1.5px solid #eee;background:#fff;color:#444;cursor:pointer;transition:all .12s;}
+.att-pill.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   STATS
+   ════════════════════════════════════════════════════════════════════════ */
+.stats-row{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;}
+.stat-box{flex:1;min-width:90px;background:#fff;border:1px solid #eee;border-top:3px solid #1a1a1a;padding:14px 14px 10px;}
+.stat-box.red{border-top-color:#c0392b;}
+.stat-num{font-family:'Bebas Neue',cursive;font-size:38px;color:#1a1a1a;line-height:1;}
+.stat-num.red{color:#c0392b;}
+.stat-lbl{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#888;margin-top:2px;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   GRIDS & FILTERS
+   ════════════════════════════════════════════════════════════════════════ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end;}
+.filter-row>div{flex:1;min-width:120px;}
+.period-btn{
+  background:#fff;border:1.5px solid #eee;font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:2px;
+  color:#888;padding:6px 12px 4px;cursor:pointer;transition:all .15s;
+}
+.period-btn:hover{border-color:#1a1a1a;color:#1a1a1a;}
+.period-btn.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.divider{height:1px;background:#eee;margin:14px 0;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MODALS
+   ════════════════════════════════════════════════════════════════════════ */
+.modal-bg{
+  position:fixed;inset:0;z-index:300;background:rgba(10,10,10,.55);
+  display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;
+}
+.modal{
+  background:#fff;border-top:3px solid #c0392b;width:100%;max-width:600px;padding:28px 28px 22px;
+  position:relative;box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+.modal.wide{max-width:780px;}
+.modal-title{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:4px;margin-bottom:18px;}
+.modal-x{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;font-size:16px;color:#888;line-height:1;}
+.modal-x:hover{color:#1a1a1a;}
+.cat-btn{padding:6px 13px;font-family:'Bebas Neue',cursive;font-size:12px;letter-spacing:2px;border:1.5px solid #eee;background:#fff;color:#888;cursor:pointer;margin:2px;transition:all .15s;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   LEARNING ITEMS / JOURNAL
+   ════════════════════════════════════════════════════════════════════════ */
+.learn-item{border-left:2px solid #eee;padding:9px 13px;margin-bottom:7px;background:#f7f7f7;}
+.cat-bar{display:flex;border-bottom:2px solid #eee;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;}
+.cat-bar::-webkit-scrollbar{display:none;}
+.cat-tab{
+  background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer;
+  font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:3px;color:#888;padding:10px 18px 8px;
+  white-space:nowrap;transition:all .15s;flex-shrink:0;
+}
+.cat-tab.on{color:#1a1a1a;border-bottom-color:#1a1a1a;}
+.lj-group{margin-bottom:22px;}
+.lj-group-head{font-family:'Bebas Neue',cursive;font-size:16px;letter-spacing:3px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.lj-entry{background:#fff;border:1px solid #eee;padding:12px 16px;margin-bottom:6px;border-left:3px solid #eee;}
+.lj-entry.ca{border-left-color:#c0392b;} .lj-entry.cr{border-left-color:#2a6496;} .lj-entry.ct{border-left-color:#27704a;} .lj-entry.cw{border-left-color:#7a4a0a;}
+.cat-badge{display:inline-block;padding:1px 7px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:2px;margin-bottom:4px;}
+.entry-session{font-size:11px;color:#888;font-style:italic;margin-top:3px;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   SEMINARS
+   ════════════════════════════════════════════════════════════════════════ */
+.sem-card{background:#fff;border:1px solid #eee;padding:18px;transition:box-shadow .15s;}
+.sem-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.att-rec{background:#fff;border:1px solid #eee;border-top:3px solid #1a1a1a;padding:20px;margin-bottom:8px;cursor:pointer;}
+.att-rec.open{border-top-color:#c0392b;}
+.instr-bar{display:flex;border-bottom:1px solid #eee;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;}
+.instr-bar::-webkit-scrollbar{display:none;}
+.instr-tab{
+  background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;
+  font-family:'Bebas Neue',cursive;font-size:12px;letter-spacing:2px;color:#888;
+  padding:8px 14px 7px;white-space:nowrap;flex-shrink:0;
+}
+.instr-tab.on{color:#c0392b;border-bottom-color:#c0392b;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ENCYCLOPEDIA
+   ════════════════════════════════════════════════════════════════════════ */
+.enc-card{background:#fff;border:1px solid #eee;padding:18px;cursor:pointer;transition:all .15s;}
+.enc-card:hover{border-color:#c0c0c0;box-shadow:0 4px 14px rgba(0,0,0,.06);}
+.video-ph{background:#f7f7f7;border:1.5px dashed #c0c0c0;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;margin-top:14px;font-family:'Bebas Neue',cursive;font-size:11px;letter-spacing:3px;color:#c0c0c0;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   GRADING TIMELINE / PROGRESS
+   ════════════════════════════════════════════════════════════════════════ */
+.timeline{position:relative;padding-left:28px;}
+.timeline::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:2px;background:#eee;}
+.t-entry{position:relative;margin-bottom:16px;}
+.t-entry::before{content:"";position:absolute;left:-22px;top:12px;width:10px;height:10px;border-radius:50%;background:#1a1a1a;border:2px solid #fff;box-shadow:0 0 0 2px #1a1a1a;}
+.t-entry.cur::before{background:#c0392b;box-shadow:0 0 0 2px #c0392b;}
+.t-entry.fut::before{background:#fff;border-color:#c0c0c0;box-shadow:0 0 0 2px #c0c0c0;}
+.t-card{background:#fff;border:1px solid #eee;padding:14px 16px;}
+.t-card.fut{background:#f7f7f7;border-style:dashed;opacity:.6;}
+.progress-bar{background:#eee;height:5px;border-radius:3px;margin:10px 0 3px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(to right,#1a1a1a,#c0392b);}
+.tech-conf-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;margin-bottom:6px;background:#fff;border:1px solid #eee;flex-wrap:wrap;gap:8px;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   EMPTY STATES
+   ════════════════════════════════════════════════════════════════════════ */
+.empty-state{text-align:center;padding:44px 20px;color:#c0c0c0;}
+.empty-state-icon{font-family:'Bebas Neue',cursive;font-size:42px;letter-spacing:6px;display:block;opacity:.1;margin-bottom:10px;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   AUTH SCREEN
+   ════════════════════════════════════════════════════════════════════════ */
+.auth-wrap{
+  height:100vh;display:flex;align-items:center;justify-content:center;
+  background:#f7f7f7;position:relative;overflow:hidden;padding:20px;
+}
+.auth-card{
+  position:relative;z-index:1;background:#fff;border-top:3px solid #c0392b;
+  width:100%;max-width:380px;padding:36px 32px 30px;box-shadow:0 20px 60px rgba(0,0,0,.08);
+}
+.auth-logo{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:28px;}
+.auth-tabs{display:flex;border-bottom:1.5px solid #eee;margin-bottom:24px;}
+.auth-tab{
+  flex:1;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1.5px;cursor:pointer;
+  font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:3px;color:#888;padding:10px 0 8px;transition:all .15s;
+}
+.auth-tab.on{color:#c0392b;border-bottom-color:#c0392b;}
+.auth-submit{width:100%;justify-content:center;margin-top:6px;padding:11px 18px 9px;}
+.auth-switch{text-align:center;font-size:12px;color:#888;margin-top:18px;}
+.auth-switch button{background:none;border:none;color:#c0392b;cursor:pointer;font-weight:600;text-decoration:underline;}
+.auth-note{font-size:11px;color:#aaa;text-align:center;margin-top:16px;line-height:1.6;}
+
+/* ════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET (≤900px)
+   ════════════════════════════════════════════════════════════════════════ */
+@media(max-width:900px){
+  .g3{grid-template-columns:1fr 1fr;}
+  .hdr-in{padding:12px 20px;}
+  .main-inner{padding:22px 20px 40px;}
+  .nav-in{padding:0 20px;}
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤600px)
+   ════════════════════════════════════════════════════════════════════════ */
+@media(max-width:600px){
+  .hdr-in{padding:10px 14px;}
+  .tagline{display:none;}
+  .wordmark{font-size:22px;letter-spacing:4px;}
+  .logo-row svg{width:34px;height:34px;}
+  .user-name{display:none;}
+
+  .nav-in{padding:0 10px;}
+  .ntab{font-size:11px;letter-spacing:2px;padding:10px 12px 8px;}
+
+  .main-inner{padding:16px 14px 80px;}
+
+  .section-head{flex-direction:column;align-items:flex-start;gap:10px;}
+  .section-title{font-size:24px;letter-spacing:3px;}
+
+  .stat-box{min-width:calc(50% - 5px);}
+  .stat-num{font-size:30px;}
+
+  .g2,.g3,.fr{grid-template-columns:1fr;}
+
+  .fa{flex-direction:column-reverse;}
+  .fa .btn,.fa .ghost{width:100%;justify-content:center;text-align:center;}
+
+  .modal-bg{padding:0;align-items:flex-end;}
+  .modal{max-width:100%;max-height:92vh;overflow-y:auto;border-radius:0;border-top-width:4px;padding:22px 18px 32px;}
+  .modal.wide{max-width:100%;}
+
+  .att-pill{padding:7px 10px;font-size:11px;}
+  .filter-row>div{min-width:100%;flex:none;}
+  .period-btn{padding:8px 10px 6px;font-size:10px;}
+  .tag{padding:5px 10px;font-size:10px;}
+  .cat-tab{font-size:11px;letter-spacing:2px;padding:8px 12px 6px;}
+  .tech-conf-row{flex-direction:column;align-items:flex-start;gap:6px;}
+  .card{padding:14px 14px 12px;}
+  .sem-card,.att-rec,.t-card{padding:14px;}
+  .ftr{font-size:8px;letter-spacing:2px;padding:10px;}
+  .auth-card{padding:28px 22px 24px;}
+}
+
+@media(max-width:380px){
+  .ntab{font-size:10px;letter-spacing:1px;padding:9px 9px 7px;}
+  .stat-box{min-width:100%;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect } = React;
+
+/* ════════════════════════════════════════════════════════════════════════
+   HELPERS
+   ════════════════════════════════════════════════════════════════════════ */
+const uid  = () => Date.now() + Math.floor(Math.random()*9999);
+const fmt  = d => new Date(d+"T00:00:00").toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+const fmtS = d => new Date(d+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+
+const S = { bebas:"'Bebas Neue',cursive" };
+
+/* ════════════════════════════════════════════════════════════════════════
+   STATIC REFERENCE DATA
+   (declared before anything that depends on it — order matters in JS)
+   ════════════════════════════════════════════════════════════════════════ */
+const TECHNIQUES = ["Ikkyo","Nikyo","Sankyo","Yonkyo","Gokyo","Iriminage","Tenchinage",
+  "Shihonage","Kotegaeshi","Kaitennage","Kokyuho","Morotedori","Katatedori","Ryotedori",
+  "Shomenuchi","Yokomenuchi","Tsuki","Ushiro Ryotedori","Katadori","Hanmi-handachi","Jiyu-waza"];
+
+const MEMBERS = ["Sensei Hayashi","Tanaka","Müller","Chen","Patel","Okonkwo","Svensson","Rossi"];
+
+const CATS = [
+  {id:"attack",    label:"Attack",    color:"#c0392b", bg:"rgba(192,57,43,0.07)"},
+  {id:"receiving", label:"Receiving", color:"#2a6496", bg:"rgba(42,100,150,0.07)"},
+  {id:"throws",    label:"Throws",    color:"#27704a", bg:"rgba(39,112,74,0.07)"},
+  {id:"weapons",   label:"Weapons",   color:"#7a4a0a", bg:"rgba(122,74,10,0.07)"},
+];
+
+const GRADES = [
+  {g:"6th Kyu",c:"#e8e8e8",b:"#aaa"},{g:"5th Kyu",c:"#e8e8e8",b:"#aaa"},
+  {g:"4th Kyu",c:"#e8e8e8",b:"#aaa"},{g:"3rd Kyu",c:"#e8e8e8",b:"#aaa"},
+  {g:"2nd Kyu",c:"#e8e8e8",b:"#aaa"},{g:"1st Kyu",c:"#e8e8e8",b:"#aaa"},
+  {g:"Shodan (1st Dan)",c:"#1a1a1a",b:"#000"},{g:"Nidan (2nd Dan)",c:"#1a1a1a",b:"#000"},
+  {g:"Sandan (3rd Dan)",c:"#1a1a1a",b:"#000"},{g:"Yondan (4th Dan)",c:"#1a1a1a",b:"#000"},
+  {g:"Godan (5th Dan)",c:"#1a1a1a",b:"#000"},{g:"Rokudan (6th Dan)",c:"#2a2a5a",b:"#111"},
+  {g:"Nanadan (7th Dan)",c:"#2a2a5a",b:"#111"},{g:"Hachidan (8th Dan)",c:"#2a2a5a",b:"#111"},
+];
+
+// Grading syllabus — exact technique list per aikido-singapore.org Adult Examination System
+// 2nd Kyu → 1st Kyu (Black Gold Tip Belt), 60 days of practice required
+const SYLLABUS = {
+  currentGrade: "2nd Kyu",
+  nextGrade: "1st Kyu",
+  beltLabel: "Black Gold Tip Belt",
+  requiredDays: 60,
+  techniques: [
+    { id:"t01", name:"Ikkyo",      attack:"Shomenuchi",       group:"Pinning",      notes:"Zagi & tachi waza — strike to head (sitting & standing)" },
+    { id:"t02", name:"Ikkyo",      attack:"Yokomenuchi",      group:"Pinning",      notes:"Zagi & tachi waza — circular strike to head (sitting & standing)" },
+    { id:"t03", name:"Ikkyo",      attack:"Katadori",         group:"Pinning",      notes:"Zagi & tachi waza — shoulder grip (sitting & standing)" },
+    { id:"t04", name:"Ikkyo",      attack:"Ushiro Ryotedori", group:"Pinning",      notes:"Both shoulders grabbed from behind" },
+    { id:"t05", name:"Nikyo",      attack:"Shomenuchi",       group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t06", name:"Nikyo",      attack:"Yokomenuchi",      group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t07", name:"Nikyo",      attack:"Katadori",         group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t08", name:"Nikyo",      attack:"Ushiro Ryotedori", group:"Pinning",      notes:"Both shoulders grabbed from behind" },
+    { id:"t09", name:"Sankyo",     attack:"Shomenuchi",       group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t10", name:"Sankyo",     attack:"Yokomenuchi",      group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t11", name:"Sankyo",     attack:"Katadori",         group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t12", name:"Sankyo",     attack:"Ushiro Ryotedori", group:"Pinning",      notes:"Both shoulders grabbed from behind" },
+    { id:"t13", name:"Yonkyo",     attack:"Shomenuchi",       group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t14", name:"Yonkyo",     attack:"Yokomenuchi",      group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t15", name:"Yonkyo",     attack:"Katadori",         group:"Pinning",      notes:"Zagi & tachi waza" },
+    { id:"t16", name:"Yonkyo",     attack:"Ushiro Ryotedori", group:"Pinning",      notes:"Both shoulders grabbed from behind" },
+    { id:"t17", name:"Gokyo",      attack:"Yokomenuchi",      group:"Pinning",      notes:"Circular strike to the head" },
+    { id:"t18", name:"Shihonage",  attack:"Katatedori",       group:"Throwing",     notes:"Single-handed grip to the wrist" },
+    { id:"t19", name:"Shihonage",  attack:"Ryotedori",        group:"Throwing",     notes:"Both hands grabbed by both hands" },
+    { id:"t20", name:"Shihonage",  attack:"Hanmi-handachi",   group:"Throwing",     notes:"Uke standing, nage sitting" },
+    { id:"t21", name:"Iriminage",  attack:"Shomenuchi",       group:"Throwing",     notes:"Strike to head" },
+    { id:"t22", name:"Iriminage",  attack:"Tsuki",            group:"Throwing",     notes:"Thrust / punch" },
+    { id:"t23", name:"Iriminage",  attack:"Katatedori",       group:"Throwing",     notes:"Single-handed grip to the wrist" },
+    { id:"t24", name:"Kotegaeshi", attack:"Shomenuchi",       group:"Throwing",     notes:"" },
+    { id:"t25", name:"Kotegaeshi", attack:"Yokomenuchi",      group:"Throwing",     notes:"" },
+    { id:"t26", name:"Kotegaeshi", attack:"Katatedori",       group:"Throwing",     notes:"" },
+    { id:"t27", name:"Kotegaeshi", attack:"Ushiro Ryotedori", group:"Throwing",     notes:"" },
+    { id:"t28", name:"Kaitennage", attack:"Katatedori",       group:"Throwing",     notes:"Single-handed grip to the wrist" },
+    { id:"t29", name:"Kaitennage", attack:"Yokomenuchi",      group:"Throwing",     notes:"" },
+    { id:"t30", name:"Tenchinage", attack:"Ryotedori",        group:"Throwing",     notes:"Both hands grabbed by both hands" },
+    { id:"t31", name:"Jiyu-waza",  attack:"Katatedori",       group:"Freestyle",    notes:"Single-handed grip" },
+    { id:"t32", name:"Jiyu-waza",  attack:"Ryotedori",        group:"Freestyle",    notes:"Both hands grabbed" },
+    { id:"t33", name:"Jiyu-waza",  attack:"Morotedori",       group:"Freestyle",    notes:"Both hands on one wrist" },
+    { id:"t34", name:"Kokyuho",    attack:"Zagi",             group:"Breath Power", notes:"Sitting" },
+    { id:"t35", name:"Kokyuho",    attack:"Tachi waza",       group:"Breath Power", notes:"Standing / free movement" },
+  ],
+};
+
+const GROUP_COLORS = {
+  "Pinning":      {color:"#2a6496", bg:"rgba(42,100,150,0.08)"},
+  "Throwing":     {color:"#27704a", bg:"rgba(39,112,74,0.08)"},
+  "Breath Power": {color:"#c0392b", bg:"rgba(192,57,43,0.08)"},
+  "Freestyle":    {color:"#7a4a0a", bg:"rgba(122,74,10,0.08)"},
+  "Weapons":      {color:"#555",    bg:"rgba(80,80,80,0.08)"},
+};
+
+// Map technique NAME → list of syllabus tech ids carrying that name (for cross-tab confidence sync)
+const TECH_NAME_TO_IDS = (() => {
+  const map = {};
+  SYLLABUS.techniques.forEach(t => {
+    if (!map[t.name]) map[t.name] = [];
+    map[t.name].push(t.id);
+  });
+  return map;
+})();
+
+const CONF_LABELS = ["—","Unfamiliar","Seen it","Can do it","Comfortable","Exam-ready"];
+const CONF_COLORS = ["#ccc","#e74c3c","#e67e22","#f1c40f","#2ecc71","#27ae60"];
+
+/* ════════════════════════════════════════════════════════════════════════
+   SEED DATA (demo content for a freshly created account)
+   ════════════════════════════════════════════════════════════════════════ */
+function makeSeedData() {
+  return {
+    sessions: [
+      {id:1,date:"2025-01-10",duration:90,attendance:["Sensei Hayashi","Tanaka","Müller","Chen"],theme:"Ushiro-waza transitions",learnings:[
+        {id:101,text:"Keep elbows close on rear attack entries — creates better connection before the technique.",techniques:["Ikkyo","Iriminage"],category:"attack"},
+        {id:102,text:"Distance must be maintained throughout the entire movement, not just the entry.",techniques:["Kokyuho"],category:"receiving"}]},
+      {id:2,date:"2025-02-05",duration:60,attendance:["Sensei Hayashi","Patel","Okonkwo","Svensson"],theme:"Single-hand grab breath power",learnings:[
+        {id:103,text:"Extend energy through the fingertips — the hand leads, the body follows.",techniques:["Katatedori","Kokyuho","Tenchinage"],category:"throws"}]},
+      {id:3,date:"2025-03-12",duration:75,attendance:["Sensei Hayashi","Tanaka","Chen","Patel"],theme:"Entering principles",learnings:[
+        {id:104,text:"Step deeply behind the attacker on entry — a half-step is never enough.",techniques:["Iriminage","Ikkyo"],category:"attack"},
+        {id:105,text:"Eyes stay forward during the pivot, never follow the foot.",techniques:["Kotegaeshi","Shihonage"],category:"throws"},
+        {id:106,text:"Receive the attack completely before redirecting — premature timing breaks the technique.",techniques:["Iriminage"],category:"receiving"}]},
+      {id:4,date:"2025-03-20",duration:60,attendance:["Sensei Hayashi","Tanaka"],theme:"Bokken basics",learnings:[
+        {id:107,text:"The cut begins from the hips, not the arms. Hands follow, never lead.",techniques:["Shomenuchi"],category:"weapons"}]},
+    ],
+    semRecords: [
+      {id:1,title:"Tissier Sensei London Visit",city:"London",country:"UK",startDate:"2024-05-10",endDate:"2024-05-12",cost:160,currency:"GBP",
+       instructors:[{id:1,name:"Christian Tissier",role:"Main Instructor"},{id:2,name:"Patrick Cassidy",role:"Assistant"}],
+       overallLearnings:[{id:201,text:"Connection must be established before the technique begins — not during.",techniques:["Ikkyo","Iriminage"]}],
+       instructorLearnings:{1:[{id:202,text:"First contact with the wrist should feel like water — yielding but present.",techniques:["Ikkyo"]}],2:[{id:203,text:"Breakfall correction: land the arm first, not the shoulder.",techniques:[]}]}},
+    ],
+    availSeminars: [
+      {id:1,title:"Yamada Sensei Summer Intensive",instructor:"Yoshimitsu Yamada",country:"USA",city:"New York",date:"2025-07-14",endDate:"2025-07-18",cost:320,currency:"USD",description:"5-day intensive on freestyle and weapons.",tags:["Weapons","Freestyle","Advanced"]},
+      {id:2,title:"Tissier Sensei European Gasshuku",instructor:"Christian Tissier",country:"France",city:"Paris",date:"2025-09-06",endDate:"2025-09-08",cost:180,currency:"EUR",description:"Sword and staff work over three days.",tags:["Weapons","Sword","Staff"]},
+      {id:3,title:"Endo Sensei Scandinavia Tour",instructor:"Seishiro Endo",country:"Sweden",city:"Stockholm",date:"2025-10-03",endDate:"2025-10-05",cost:1800,currency:"SEK",description:"Mindful Aikido — connection and sensitivity.",tags:["Connection","Mindfulness"]},
+      {id:4,title:"Sugano Memorial Seminar",instructor:"Multiple Shihans",country:"Australia",city:"Sydney",date:"2025-11-15",endDate:"2025-11-17",cost:250,currency:"AUD",description:"Annual memorial event.",tags:["Memorial","Multi-instructor"]},
+      {id:5,title:"Ikeda Sensei Winter Camp",instructor:"Hiroshi Ikeda",country:"USA",city:"Boulder",date:"2026-01-10",endDate:"2026-01-12",cost:275,currency:"USD",description:"Internal power workshop.",tags:["Internal","Conditioning"]},
+      {id:6,title:"Osawa Hayato Sensei Visit",instructor:"Hayato Osawa",country:"Japan",city:"Tokyo",date:"2026-03-20",endDate:"2026-03-23",cost:15000,currency:"JPY",description:"Traditional Aikikai curriculum.",tags:["Traditional","Advanced"]},
+    ],
+    grades: [
+      {id:1,grade:"6th Kyu",date:"2021-09-15",examiner:"Sensei Hayashi",location:"Tokyo Dojo",notes:"First grading. Nerves throughout but basics were solid."},
+      {id:2,grade:"5th Kyu",date:"2022-01-20",examiner:"Sensei Hayashi",location:"Tokyo Dojo",notes:"Improved ukemi significantly."},
+      {id:3,grade:"4th Kyu",date:"2022-07-08",examiner:"Sensei Hayashi",location:"Tokyo Dojo",notes:"Ikkyo omote needs work. Iriminage feeling more natural."},
+      {id:4,grade:"3rd Kyu",date:"2023-02-11",examiner:"Tissier Sensei",location:"Paris Seminar",notes:"Graded during Tissier seminar. Biggest test so far."},
+    ],
+    techniquesDB: [
+      {id:1,name:"Ikkyo",category:"Pinning",attack:"Various",description:"The first teaching. A fundamental arm pin controlling elbow and wrist, directing energy downward.",videoUrl:"",tags:["Pinning","Fundamental","Omote","Ura"]},
+      {id:2,name:"Iriminage",category:"Throwing",attack:"Various",description:"Entering throw. Enter deeply into the attacker's space and project forward with breath power.",videoUrl:"",tags:["Throwing","Entry","Intermediate"]},
+      {id:3,name:"Kotegaeshi",category:"Throwing",attack:"Various",description:"Wrist-return throw. A wrist rotation that overturns the attacker's grip.",videoUrl:"",tags:["Throwing","Wrist","Fundamental"]},
+      {id:4,name:"Shihonage",category:"Throwing",attack:"Single-hand grab",description:"Four-direction throw. Take the arm overhead and cut down in one of four directions.",videoUrl:"",tags:["Throwing","Omote","Ura"]},
+      {id:5,name:"Kokyuho",category:"Breath Power",attack:"Two-hand grab",description:"Breath power exercise. Develops sensitivity and extension. Practiced at the end of class.",videoUrl:"",tags:["Breath Power","Seated","Fundamental"]},
+      {id:6,name:"Kaitennage",category:"Throwing",attack:"Single-hand grab",description:"Rotary throw. The arm is brought behind the attacker's back as the practitioner guides rotation.",videoUrl:"",tags:["Throwing","Rotation","Intermediate"]},
+    ],
+    confidence: {},
+  };
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   LOCAL AUTH LAYER (Phase 1 — mock accounts, stored in-memory for this tab)
+   ════════════════════════════════════════════════════════════════════════
+   This is intentionally simple: an in-memory list of accounts and a
+   "current session" pointer. Nothing is persisted to a server yet.
+   When Supabase is wired in later, only this block needs to be replaced —
+   everything below (App, modules) consumes the same { user, login, signup,
+   logout } shape regardless of what's powering it.
+   ════════════════════════════════════════════════════════════════════════ */
+function useLocalAuth() {
+  const [accounts, setAccounts] = useState({}); // email -> { password, displayName, data }
+  const [user, setUser]         = useState(null); // { email, displayName } | null
+  const [authError, setAuthError] = useState("");
+
+  const signup = (email, password, displayName) => {
+    setAuthError("");
+    const key = email.trim().toLowerCase();
+    if (!key || !password || !displayName.trim()) {
+      setAuthError("All fields are required.");
+      return false;
+    }
+    if (accounts[key]) {
+      setAuthError("An account with this email already exists.");
+      return false;
+    }
+    const newAccount = { password, displayName: displayName.trim(), data: makeSeedData() };
+    setAccounts(prev => ({ ...prev, [key]: newAccount }));
+    setUser({ email: key, displayName: newAccount.displayName });
+    return true;
+  };
+
+  const login = (email, password) => {
+    setAuthError("");
+    const key = email.trim().toLowerCase();
+    const acct = accounts[key];
+    if (!acct || acct.password !== password) {
+      setAuthError("Incorrect email or password.");
+      return false;
+    }
+    setUser({ email: key, displayName: acct.displayName });
+    return true;
+  };
+
+  const logout = () => setUser(null);
+
+  const updateUserData = (updater) => {
+    if (!user) return;
+    setAccounts(prev => {
+      const acct = prev[user.email];
+      if (!acct) return prev;
+      const nextData = typeof updater === "function" ? updater(acct.data) : updater;
+      return { ...prev, [user.email]: { ...acct, data: nextData } };
+    });
+  };
+
+  const userData = user ? accounts[user.email]?.data : null;
+
+  return { user, userData, authError, signup, login, logout, updateUserData };
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   AUTH SCREEN
+   ════════════════════════════════════════════════════════════════════════ */
+function AuthLogo() {
+  return (
+    <svg width="56" height="56" viewBox="0 0 80 80" fill="none">
+      <circle cx="40" cy="40" r="36" fill="#f5f5f5" stroke="#555" strokeWidth="2.5"/>
+      <circle cx="40" cy="22" r="6" fill="#1a1a1a"/>
+      <path d="M34 28 Q18 38,22 56" stroke="#c0392b" strokeWidth="3" fill="none" strokeLinecap="round"/>
+      <path d="M46 28 Q62 34,58 52" stroke="#555" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity=".75"/>
+      <line x1="24" y1="60" x2="56" y2="60" stroke="#555" strokeWidth="1.5" opacity=".3"/>
+      <path d="M36 42 L30 62" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M42 40 L50 60" stroke="#888" strokeWidth="2" strokeLinecap="round" opacity=".65"/>
+    </svg>
+  );
+}
+
+function AuthScreen({ signup, login, authError }) {
+  const [mode, setMode]   = useState("login"); // "login" | "signup"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const ok = mode === "login" ? login(email, password) : signup(email, password, displayName);
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="auth-wrap">
+      <div className="grid-bg"/>
+      <div className="auth-card">
+        <div className="auth-logo">
+          <AuthLogo/>
+          <div style={{textAlign:"center"}}>
+            <div className="wordmark">AIKI<span>DOJO</span></div>
+            <div className="tagline">Training · Learning · Practice</div>
+          </div>
+        </div>
+
+        <div className="auth-tabs">
+          <button className={"auth-tab"+(mode==="login"?" on":"")} onClick={()=>setMode("login")}>Log In</button>
+          <button className={"auth-tab"+(mode==="signup"?" on":"")} onClick={()=>setMode("signup")}>Sign Up</button>
+        </div>
+
+        <form onSubmit={submit}>
+          {mode==="signup" && (
+            <div className="fg">
+              <label>Name</label>
+              <input type="text" placeholder="Your name" value={displayName} onChange={e=>setDisplayName(e.target.value)} required/>
+            </div>
+          )}
+          <div className="fg">
+            <label>Email</label>
+            <input type="email" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} required/>
+          </div>
+          <div className="fg">
+            <label>Password</label>
+            <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required/>
+          </div>
+
+          {authError && <div className="field-error">{authError}</div>}
+
+          <button type="submit" className="btn red auth-submit" disabled={submitting}>
+            {mode==="login" ? "Log In" : "Create Account"}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          {mode==="login"
+            ? <>New here? <button onClick={()=>setMode("signup")}>Create an account</button></>
+            : <>Already have an account? <button onClick={()=>setMode("login")}>Log in</button></>}
+        </div>
+
+        <div className="auth-note">
+          Accounts are stored locally in this browser session for now.<br/>
+          Refreshing the page will reset all accounts.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   SHARED MICRO-COMPONENTS
+   ════════════════════════════════════════════════════════════════════════ */
+const Logo = () => (
+  <svg width="42" height="42" viewBox="0 0 80 80" fill="none">
+    <circle cx="40" cy="40" r="36" fill="#f5f5f5" stroke="#555" strokeWidth="2.5"/>
+    <circle cx="40" cy="22" r="6" fill="#1a1a1a"/>
+    <path d="M34 28 Q18 38,22 56" stroke="#c0392b" strokeWidth="3" fill="none" strokeLinecap="round"/>
+    <path d="M46 28 Q62 34,58 52" stroke="#555" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity=".75"/>
+    <line x1="24" y1="60" x2="56" y2="60" stroke="#555" strokeWidth="1.5" opacity=".3"/>
+    <path d="M36 42 L30 62" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round"/>
+    <path d="M42 40 L50 60" stroke="#888" strokeWidth="2" strokeLinecap="round" opacity=".65"/>
+  </svg>
+);
+
+const Belt = ({c,b}) => (
+  <svg width="32" height="12" viewBox="0 0 36 14" fill="none" style={{flexShrink:0}}>
+    <rect x="1" y="1" width="34" height="12" rx="3" fill={c} stroke={b} strokeWidth="1.5"/>
+    <rect x="6" y="4" width="24" height="6" rx="1" fill={b} opacity=".15"/>
+    <line x1="18" y1="1" x2="18" y2="13" stroke={b} strokeWidth="1" opacity=".3"/>
+  </svg>
+);
+
+const Modal = ({open, onClose, title, wide, children}) => {
+  if (!open) return null;
+  return (
+    <div className="modal-bg" onClick={e => e.target===e.currentTarget && onClose()}>
+      <div className={"modal" + (wide ? " wide" : "")}>
+        <button className="modal-x" onClick={onClose}>✕</button>
+        {title && <div className="modal-title">{title}</div>}
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const CatPicker = ({value, onChange}) => (
+  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:4}}>
+    {CATS.map(c => (
+      <button key={c.id} className="cat-btn" onClick={() => onChange(c.id)}
+        style={{borderColor:value===c.id?c.color:"#eee", background:value===c.id?c.bg:"#fff", color:value===c.id?c.color:"#888"}}>
+        {c.label}
+      </button>
+    ))}
+  </div>
+);
+
+const TechTags = ({selected, onToggle}) => (
+  <div style={{display:"flex",flexWrap:"wrap",gap:3,marginTop:6}}>
+    {TECHNIQUES.map(t => (
+      <span key={t} className={"tag" + (selected.includes(t) ? " on" : "")} onClick={() => onToggle(t)}>{t}</span>
+    ))}
+  </div>
+);
+
+const Empty = ({label}) => (
+  <div className="empty-state">
+    <span className="empty-state-icon">{label}</span>
+    <p style={{fontSize:13}}>Nothing here yet.</p>
+  </div>
+);
+
+// Mini inline confidence rater: shows stars for ONE technique name.
+// Only renders if the technique is part of the grading syllabus (so confidence
+// can sync across Training Log / Learning Journal / Grading Journey).
+function InlineConf({ techName, confidence, setConfidence, compact }) {
+  const ids = TECH_NAME_TO_IDS[techName] || [];
+  if (!ids.length) return null;
+
+  const avgVal = (() => {
+    const vals = ids.map(id => confidence[id] || 0);
+    const nonzero = vals.filter(v=>v>0);
+    return nonzero.length ? Math.round(nonzero.reduce((a,v)=>a+v,0)/nonzero.length) : 0;
+  })();
+
+  const setAll = (stars) => {
+    setConfidence(prev => {
+      const next = {...prev};
+      ids.forEach(id => { next[id] = stars === next[id] ? 0 : stars; });
+      return next;
+    });
+  };
+
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:compact?4:8,marginTop:compact?2:5,flexWrap:"wrap"}}>
+      <span style={{fontFamily:S.bebas,fontSize:9,letterSpacing:2,color:"#aaa"}}>CONFIDENCE</span>
+      <div style={{display:"flex",gap:compact?1:2}}>
+        {[1,2,3,4,5].map(s => (
+          <button key={s} onClick={e=>{e.stopPropagation();setAll(s);}}
+            style={{background:"none",border:"none",cursor:"pointer",padding:"0 1px",
+              fontSize:compact?12:14,lineHeight:1,
+              color:s<=avgVal?CONF_COLORS[avgVal]:"#ddd",transition:"color .12s"}}>
+            ★
+          </button>
+        ))}
+      </div>
+      {avgVal>0 && <span style={{fontSize:10,color:CONF_COLORS[avgVal],fontWeight:600}}>{CONF_LABELS[avgVal]}</span>}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MODULE 1 — TRAINING LOG
+   ════════════════════════════════════════════════════════════════════════ */
+function TrainingLog({sessions, setSessions, confidence, setConfidence}) {
+  const now = new Date();
+  const [period, setPeriod] = useState("all");
+  const [monthVal, setMonthVal] = useState(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`);
+  const [yearVal, setYearVal]   = useState(String(now.getFullYear()));
+  const [fromD, setFromD]       = useState("");
+  const [toD, setToD]           = useState("");
+  const [expanded, setExpanded] = useState(null);
+  const [showNewSess, setShowNewSess] = useState(false);
+  const [newLearnFor, setNewLearnFor] = useState(null);
+  const [ns, setNs] = useState({date:"",duration:60,theme:"",attendance:[]});
+  const [nl, setNl] = useState({text:"",techniques:[],category:""});
+
+  const filtered = useMemo(() => {
+    if (period==="month" && monthVal) return sessions.filter(s => s.date.slice(0,7)===monthVal);
+    if (period==="year"  && yearVal)  return sessions.filter(s => s.date.slice(0,4)===yearVal);
+    if (period==="custom" && fromD && toD) return sessions.filter(s => s.date>=fromD && s.date<=toD);
+    return sessions;
+  }, [sessions, period, monthVal, yearVal, fromD, toD]);
+
+  const mins   = filtered.reduce((a,s) => a+s.duration, 0);
+  const totalL = filtered.reduce((a,s) => a+s.learnings.length, 0);
+
+  const toggleAtt  = m => setNs(p => ({...p, attendance: p.attendance.includes(m) ? p.attendance.filter(x=>x!==m) : [...p.attendance,m]}));
+  const toggleTech = t => setNl(p => ({...p, techniques: p.techniques.includes(t) ? p.techniques.filter(x=>x!==t) : [...p.techniques,t]}));
+
+  const saveSession = () => {
+    if (!ns.date || !ns.theme.trim()) return;
+    setSessions(p => [{...ns, id:uid(), learnings:[]}, ...p]);
+    setNs({date:"",duration:60,theme:"",attendance:[]});
+    setShowNewSess(false);
+  };
+
+  const saveLearning = () => {
+    if (!nl.text.trim() || !newLearnFor) return;
+    setSessions(p => p.map(s => s.id===newLearnFor ? {...s, learnings:[...s.learnings, {...nl, id:uid()}]} : s));
+    setNl({text:"",techniques:[],category:""});
+    setNewLearnFor(null);
+  };
+
+  return (
+    <div>
+      <div style={{background:"#fff",border:"1px solid #eee",borderTop:"3px solid #1a1a1a",padding:"14px 16px",marginBottom:20}}>
+        <div style={{fontFamily:S.bebas,fontSize:10,letterSpacing:3,color:"#888",marginBottom:8}}>HOURS LOGGED BY PERIOD</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+          {[["all","All Time"],["month","Month"],["year","Year"],["custom","Custom Range"]].map(([f,lb]) => (
+            <button key={f} className={"period-btn"+(period===f?" on":"")} onClick={()=>setPeriod(f)}>{lb}</button>
+          ))}
+        </div>
+        {period==="month" && <div style={{maxWidth:200,marginBottom:8}}><label>Month</label><input type="month" value={monthVal} onChange={e=>setMonthVal(e.target.value)}/></div>}
+        {period==="year"  && <div style={{maxWidth:150,marginBottom:8}}><label>Year</label><input type="number" min="2000" max="2099" value={yearVal} onChange={e=>setYearVal(e.target.value)}/></div>}
+        {period==="custom"&& <div style={{display:"flex",gap:10,marginBottom:8,flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:140}}><label>From</label><input type="date" value={fromD} onChange={e=>setFromD(e.target.value)}/></div>
+          <div style={{flex:1,minWidth:140}}><label>To</label><input type="date" value={toD} onChange={e=>setToD(e.target.value)}/></div>
+        </div>}
+        <div style={{display:"flex",gap:24,paddingTop:10,borderTop:"1px solid #eee",flexWrap:"wrap"}}>
+          <div><div style={{fontFamily:S.bebas,fontSize:36,lineHeight:1}}>{Math.floor(mins/60)}<span style={{fontSize:16}}>h</span>{mins%60>0 && <> {mins%60}<span style={{fontSize:16}}>m</span></>}</div><div className="stat-lbl">Mat Time</div></div>
+          <div><div style={{fontFamily:S.bebas,fontSize:36,lineHeight:1,color:"#c0392b"}}>{filtered.length}</div><div className="stat-lbl">Sessions</div></div>
+          <div><div style={{fontFamily:S.bebas,fontSize:36,lineHeight:1}}>{totalL}</div><div className="stat-lbl">Learnings</div></div>
+        </div>
+      </div>
+
+      <div className="section-head">
+        <div className="section-title">Training Log</div>
+        <button className="btn red" onClick={()=>setShowNewSess(true)}>+ Record Session</button>
+      </div>
+      <div className="rule"/>
+
+      {filtered.length===0 && <Empty label="LOG"/>}
+
+      {filtered.map(s => {
+        const open = expanded===s.id;
+        return (
+          <div className="card" key={s.id}>
+            <div className="s-eyebrow">{fmt(s.date)}</div>
+            <div className="s-title">{s.theme}</div>
+            <div className="s-meta">{s.duration} min &nbsp;·&nbsp; {s.attendance.length} practitioners</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:8}}>
+              {s.attendance.map(m => <span key={m} style={{fontSize:10,fontWeight:600,padding:"2px 8px",background:"#f7f7f7",border:"1px solid #eee",color:"#444"}}>{m}</span>)}
+            </div>
+            {open && <>
+              <div className="divider"/>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <span style={{fontFamily:S.bebas,fontSize:10,letterSpacing:2,color:"#888"}}>SESSION LEARNINGS</span>
+                <button className="ghost sm" onClick={()=>{setNewLearnFor(s.id);setNl({text:"",techniques:[],category:""});}}>+ Add</button>
+              </div>
+              {s.learnings.length===0 && <p style={{fontSize:12,color:"#c0c0c0",padding:"4px 0"}}>No learnings yet.</p>}
+              {s.learnings.map(l => {
+                const cat = CATS.find(c=>c.id===l.category);
+                return (
+                  <div key={l.id} className="learn-item" style={{borderLeftColor:cat?cat.color:"#eee"}}>
+                    {cat && <div style={{fontSize:9,fontWeight:700,letterSpacing:2,textTransform:"uppercase",color:cat.color,marginBottom:2}}>{cat.label}</div>}
+                    <div style={{fontSize:13,lineHeight:1.75,marginBottom:4}}>{l.text}</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:2}}>{l.techniques.map(t=><span key={t} className="tag" style={{cursor:"default"}}>{t}</span>)}</div>
+                    {l.techniques.map(t => <InlineConf key={t} techName={t} confidence={confidence} setConfidence={setConfidence} compact/>)}
+                  </div>
+                );
+              })}
+            </>}
+            <button className="expand-btn" onClick={()=>setExpanded(open?null:s.id)}>
+              {open ? "▲ Collapse" : `▼ ${s.learnings.length} learning${s.learnings.length!==1?"s":""}`}
+            </button>
+          </div>
+        );
+      })}
+
+      <Modal open={showNewSess} onClose={()=>setShowNewSess(false)} title="Record Session">
+        <div className="fr">
+          <div className="fg"><label>Date</label><input type="date" value={ns.date} onChange={e=>setNs(p=>({...p,date:e.target.value}))}/></div>
+          <div className="fg"><label>Duration (min)</label><input type="number" value={ns.duration} onChange={e=>setNs(p=>({...p,duration:+e.target.value}))}/></div>
+        </div>
+        <div className="fg"><label>Session Theme</label><input placeholder="e.g. Rear attack entries" value={ns.theme} onChange={e=>setNs(p=>({...p,theme:e.target.value}))}/></div>
+        <div className="fg"><label>Attendance</label>
+          <div className="att-grid" style={{marginTop:6}}>
+            {MEMBERS.map(m=><div key={m} className={"att-pill"+(ns.attendance.includes(m)?" on":"")} onClick={()=>toggleAtt(m)}>{m}</div>)}
+          </div>
+        </div>
+        <div className="fa">
+          <button className="ghost" onClick={()=>setShowNewSess(false)}>Cancel</button>
+          <button className="btn red" onClick={saveSession}>Save Session</button>
+        </div>
+      </Modal>
+
+      <Modal open={!!newLearnFor} onClose={()=>setNewLearnFor(null)} title="Log a Learning">
+        <div className="fg"><label>Category</label><CatPicker value={nl.category} onChange={v=>setNl(p=>({...p,category:v}))}/></div>
+        <div className="fg"><label>Insight</label><textarea rows={4} placeholder="What did you discover?" value={nl.text} onChange={e=>setNl(p=>({...p,text:e.target.value}))}/></div>
+        <div className="fg"><label>Tag Techniques</label><TechTags selected={nl.techniques} onToggle={toggleTech}/></div>
+        <div className="fa">
+          <button className="ghost" onClick={()=>setNewLearnFor(null)}>Cancel</button>
+          <button className="btn red" onClick={saveLearning}>Save Learning</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MODULE 2 — LEARNING JOURNAL
+   ════════════════════════════════════════════════════════════════════════ */
+function LearningJournal({sessions, setSessions, confidence, setConfidence}) {
+  const [activeCat, setActiveCat] = useState("all");
+  const [search, setSearch]       = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [nl, setNl] = useState({text:"",techniques:[],category:"",sessionId:""});
+
+  const allL = useMemo(() => {
+    const out = [];
+    sessions.forEach(s => s.learnings.forEach(l => out.push({...l, sessionDate:s.date, sessionTheme:s.theme, sessionId:s.id})));
+    return out;
+  }, [sessions]);
+
+  const filtered = useMemo(() => {
+    let list = allL;
+    if (activeCat!=="all") list = list.filter(l=>l.category===activeCat);
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(l => l.text.toLowerCase().includes(q) || l.techniques.some(t=>t.toLowerCase().includes(q)));
+    }
+    return list;
+  }, [allL, activeCat, search]);
+
+  const grouped = useMemo(() => {
+    const map = {};
+    filtered.forEach(l => {
+      const keys = l.techniques.length ? l.techniques : ["General"];
+      keys.forEach(k => { if(!map[k]) map[k]=[]; map[k].push(l); });
+    });
+    return Object.entries(map).sort(([a],[b]) => a==="General"?1:b==="General"?-1:a.localeCompare(b));
+  }, [filtered]);
+
+  const counts = useMemo(() => {
+    const c = {all:allL.length};
+    CATS.forEach(cat => { c[cat.id] = allL.filter(l=>l.category===cat.id).length; });
+    return c;
+  }, [allL]);
+
+  const saveLearning = () => {
+    if (!nl.text.trim()) return;
+    const entry = {id:uid(), text:nl.text, techniques:nl.techniques, category:nl.category};
+    const sid = nl.sessionId ? +nl.sessionId : null;
+    setSessions(p => {
+      if (sid) return p.map(s => s.id===sid ? {...s, learnings:[...s.learnings,entry]} : s);
+      if (!p.length) return p;
+      return [{ ...p[0], learnings:[...p[0].learnings, entry] }, ...p.slice(1)];
+    });
+    setNl({text:"",techniques:[],category:"",sessionId:""});
+    setShowModal(false);
+  };
+
+  return (
+    <div>
+      <div className="stats-row">
+        <div className="stat-box"><div className="stat-num">{allL.length}</div><div className="stat-lbl">Total Learnings</div></div>
+        <div className="stat-box red"><div className="stat-num red">{grouped.length}</div><div className="stat-lbl">Techniques</div></div>
+        <div className="stat-box"><div className="stat-num">{sessions.length}</div><div className="stat-lbl">Sessions</div></div>
+      </div>
+      <div className="section-head">
+        <div className="section-title">Learning Journal</div>
+        <button className="btn red" onClick={()=>setShowModal(true)}>+ New Learning</button>
+      </div>
+      <div className="rule"/>
+
+      <div className="cat-bar">
+        {[["all","All"],...CATS.map(c=>[c.id,c.label])].map(([id,label]) => {
+          const cat = CATS.find(c=>c.id===id);
+          return (
+            <button key={id} className={"cat-tab"+(activeCat===id?" on":"")}
+              style={activeCat===id && cat ? {color:cat.color, borderBottomColor:cat.color} : {}}
+              onClick={()=>setActiveCat(id)}>
+              {label} <span style={{fontSize:10,color:"#888",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>({counts[id]||0})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{marginBottom:16}}>
+        <input placeholder="Search by technique or keyword…" value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:360}}/>
+      </div>
+
+      {grouped.length===0 && <Empty label="LEARN"/>}
+
+      {grouped.map(([tech, learnings]) => (
+        <div className="lj-group" key={tech}>
+          <div className="lj-group-head">
+            {tech}
+            <span style={{fontSize:11,color:"#888",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>{learnings.length} entr{learnings.length!==1?"ies":"y"}</span>
+          </div>
+          {learnings.map(l => {
+            const cat = CATS.find(c=>c.id===l.category);
+            const cls = l.category ? ({attack:"ca",receiving:"cr",throws:"ct",weapons:"cw"}[l.category]||"") : "";
+            return (
+              <div key={l.id+"-"+tech} className={"lj-entry"+(cls?" "+cls:"")}>
+                {cat && <span className="cat-badge" style={{background:cat.bg,color:cat.color}}>{cat.label}</span>}
+                <div style={{fontSize:13,lineHeight:1.75,marginTop:cat?3:0,marginBottom:5}}>{l.text}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:3,marginBottom:3}}>
+                  {l.techniques.filter(t=>t!==tech).map(t=><span key={t} className="tag" style={{cursor:"default"}}>{t}</span>)}
+                </div>
+                {l.techniques.map(t => <InlineConf key={t} techName={t} confidence={confidence} setConfidence={setConfidence} compact/>)}
+                {l.sessionDate && <div className="entry-session">From: {l.sessionTheme} — {fmtS(l.sessionDate)}</div>}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+
+      <Modal open={showModal} onClose={()=>setShowModal(false)} title="New Learning">
+        <div className="fg"><label>Category</label><CatPicker value={nl.category} onChange={v=>setNl(p=>({...p,category:v}))}/></div>
+        <div className="fg"><label>Insight</label><textarea rows={4} placeholder="What did you discover?" value={nl.text} onChange={e=>setNl(p=>({...p,text:e.target.value}))}/></div>
+        <div className="fg"><label>Tag Techniques</label><TechTags selected={nl.techniques} onToggle={t=>setNl(p=>({...p,techniques:p.techniques.includes(t)?p.techniques.filter(x=>x!==t):[...p.techniques,t]}))} /></div>
+        <div className="fg"><label>Link to Session (optional)</label>
+          <select value={nl.sessionId} onChange={e=>setNl(p=>({...p,sessionId:e.target.value}))}>
+            <option value="">— No session linked —</option>
+            {sessions.map(s=><option key={s.id} value={s.id}>{fmt(s.date)} · {s.theme}</option>)}
+          </select>
+        </div>
+        <div className="fa">
+          <button className="ghost" onClick={()=>setShowModal(false)}>Cancel</button>
+          <button className="btn red" onClick={saveLearning}>Save Learning</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MODULE 3 — SEMINARS
+   ════════════════════════════════════════════════════════════════════════ */
+function Seminars({semRecords, setSemRecords, availSeminars, setAvailSeminars}) {
+  const [subTab, setSubTab]     = useState("attended");
+  const [expanded, setExpanded] = useState(null);
+  const [instrTabs, setInstrTabs] = useState({});
+  const [attYear, setAttYear]   = useState("");
+  const [showRecModal, setShowRecModal] = useState(false);
+  const [showLearnModal, setShowLearnModal] = useState(null);
+  const [learnForm, setLearnForm] = useState({text:"",techniques:[]});
+  const blank = {title:"",city:"",country:"",startDate:"",endDate:"",cost:"",currency:"USD",instructors:[{id:1,name:"",role:"Main Instructor"}]};
+  const [form, setForm]         = useState(blank);
+  const [filters, setFilters]   = useState({country:"",month:"",year:""});
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [ns, setNs]             = useState({title:"",instructor:"",country:"",city:"",date:"",endDate:"",cost:"",currency:"USD",description:"",tags:""});
+
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const attYears   = [...new Set(semRecords.map(r=>r.startDate.slice(0,4)))].sort().reverse();
+  const countries  = [...new Set(availSeminars.map(s=>s.country))].sort();
+  const semYears   = [...new Set(availSeminars.map(s=>s.date.slice(0,4)))].sort();
+  const filtRecs   = attYear ? semRecords.filter(r=>r.startDate.slice(0,4)===attYear) : semRecords;
+  const filtSems   = availSeminars.filter(s => {
+    if (filters.country && s.country!==filters.country) return false;
+    if (filters.month   && s.date.slice(5,7)!==filters.month) return false;
+    if (filters.year    && s.date.slice(0,4)!==filters.year) return false;
+    return true;
+  });
+
+  const addInstr  = () => setForm(p=>({...p,instructors:[...p.instructors,{id:uid(),name:"",role:""}]}));
+  const remInstr  = id => setForm(p=>({...p,instructors:p.instructors.filter(i=>i.id!==id)}));
+  const updInstr  = (id,f,v) => setForm(p=>({...p,instructors:p.instructors.map(i=>i.id===id?{...i,[f]:v}:i)}));
+  const saveRec   = () => {
+    if (!form.title||!form.startDate) return;
+    setSemRecords(p=>[{...form,id:uid(),cost:+form.cost,overallLearnings:[],instructorLearnings:{}}, ...p]);
+    setForm(blank); setShowRecModal(false);
+  };
+  const saveLearn = () => {
+    if (!learnForm.text||!showLearnModal) return;
+    const {rId,iId} = showLearnModal;
+    const entry = {id:uid(),text:learnForm.text,techniques:learnForm.techniques};
+    setSemRecords(p=>p.map(r=>{
+      if (r.id!==rId) return r;
+      if (iId===null) return {...r, overallLearnings:[...r.overallLearnings,entry]};
+      const il = {...r.instructorLearnings}; il[iId]=[...(il[iId]||[]),entry];
+      return {...r, instructorLearnings:il};
+    }));
+    setLearnForm({text:"",techniques:[]}); setShowLearnModal(null);
+  };
+  const saveAvail = () => {
+    if (!ns.title||!ns.date) return;
+    setAvailSeminars(p=>[...p,{...ns,id:uid(),cost:+ns.cost,tags:ns.tags.split(",").map(t=>t.trim()).filter(Boolean)}]);
+    setNs({title:"",instructor:"",country:"",city:"",date:"",endDate:"",cost:"",currency:"USD",description:"",tags:""});
+    setShowAddModal(false);
+  };
+
+  const totalL = semRecords.reduce((a,r)=>a+r.overallLearnings.length+Object.values(r.instructorLearnings).flat().length,0);
+  const allInstrs = [...new Set(semRecords.flatMap(r=>r.instructors.map(i=>i.name)))];
+
+  return (
+    <div>
+      <div className="section-head">
+        <div className="section-title">Seminars</div>
+        {subTab==="attended"
+          ? <button className="btn red" onClick={()=>setShowRecModal(true)}>+ Record Attendance</button>
+          : <button className="btn red" onClick={()=>setShowAddModal(true)}>+ Add Seminar</button>}
+      </div>
+      <div className="rule"/>
+
+      <div className="cat-bar" style={{marginBottom:20}}>
+        {[["attended","Attended"],["search","Search Available"]].map(([id,label])=>(
+          <button key={id} className={"cat-tab"+(subTab===id?" on":"")} onClick={()=>setSubTab(id)}>
+            {label} <span style={{fontSize:10,color:"#888",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>({id==="attended"?semRecords.length:availSeminars.length})</span>
+          </button>
+        ))}
+      </div>
+
+      {subTab==="attended" && <>
+        <div className="stats-row">
+          <div className="stat-box"><div className="stat-num">{semRecords.length}</div><div className="stat-lbl">Attended</div></div>
+          <div className="stat-box"><div className="stat-num">{allInstrs.length}</div><div className="stat-lbl">Instructors</div></div>
+          <div className="stat-box red"><div className="stat-num red">{totalL}</div><div className="stat-lbl">Learnings</div></div>
+        </div>
+        <div style={{display:"flex",alignItems:"flex-end",gap:8,marginBottom:16}}>
+          <div style={{minWidth:150}}><label>Year</label>
+            <select value={attYear} onChange={e=>setAttYear(e.target.value)}>
+              <option value="">All Years</option>
+              {attYears.map(y=><option key={y}>{y}</option>)}
+            </select>
+          </div>
+          {attYear && <button className="ghost sm" onClick={()=>setAttYear("")}>Clear</button>}
+        </div>
+        {filtRecs.length===0 && <Empty label="DOJO"/>}
+        {filtRecs.map(r => {
+          const isOpen = expanded===r.id;
+          const total  = r.overallLearnings.length + Object.values(r.instructorLearnings).flat().length;
+          const aTab   = instrTabs[r.id] ?? "overall";
+          const panels = [{id:"overall",label:"Whole Seminar",learnings:r.overallLearnings}, ...r.instructors.map(i=>({id:i.id,label:i.name,learnings:r.instructorLearnings[i.id]||[]}))];
+          const cur    = panels.find(p=>String(p.id)===String(aTab)) || panels[0];
+          return (
+            <div key={r.id} className={"att-rec"+(isOpen?" open":"")} onClick={()=>!isOpen&&setExpanded(r.id)}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
+                <div>
+                  <div className="s-eyebrow">{r.country} · {r.city} | {fmtS(r.startDate)}{r.endDate&&r.endDate!==r.startDate?` – ${fmtS(r.endDate)}`:""}</div>
+                  <div className="s-title">{r.title}</div>
+                  <div style={{fontSize:12,color:"#888",marginBottom:6}}>{r.instructors.map(i=>i.name).join(", ")}</div>
+                  <div style={{display:"flex",gap:12,fontSize:12}}>
+                    <span style={{fontFamily:S.bebas,fontSize:17}}>{r.cost>0?`${r.cost.toLocaleString()} ${r.currency}`:"Free"}</span>
+                    <span style={{color:"#888"}}>{total} learning{total!==1?"s":""}</span>
+                  </div>
+                </div>
+                {isOpen && <button className="ghost sm" onClick={e=>{e.stopPropagation();setExpanded(null);}}>▲ Close</button>}
+              </div>
+              {isOpen && <div onClick={e=>e.stopPropagation()}>
+                <div className="divider"/>
+                <div className="instr-bar">
+                  {panels.map(p=><button key={p.id} className={"instr-tab"+(String(p.id)===String(aTab)?" on":"")} onClick={()=>setInstrTabs(prev=>({...prev,[r.id]:p.id}))}>{p.label}</button>)}
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <span style={{fontFamily:S.bebas,fontSize:10,letterSpacing:2,color:"#888"}}>{aTab==="overall"?"OVERALL LEARNINGS":`LEARNINGS — ${(cur.label||"").toUpperCase()}`}</span>
+                  <button className="ghost sm" onClick={()=>{setShowLearnModal({rId:r.id,iId:aTab==="overall"?null:r.instructors.find(i=>String(i.id)===String(aTab))?.id??null});setLearnForm({text:"",techniques:[]});}}>+ Add</button>
+                </div>
+                {cur.learnings.length===0 && <p style={{fontSize:12,color:"#c0c0c0",padding:"4px 0"}}>No learnings yet.</p>}
+                {cur.learnings.map(l=><div key={l.id} className="learn-item"><div style={{fontSize:13,lineHeight:1.75,marginBottom:4}}>{l.text}</div><div>{l.techniques.map(t=><span key={t} className="tag" style={{cursor:"default"}}>{t}</span>)}</div></div>)}
+              </div>}
+            </div>
+          );
+        })}
+      </>}
+
+      {subTab==="search" && <>
+        <div className="filter-row">
+          <div><label>Country</label><select value={filters.country} onChange={e=>setFilters(p=>({...p,country:e.target.value}))}><option value="">All Countries</option>{countries.map(c=><option key={c}>{c}</option>)}</select></div>
+          <div><label>Month</label><select value={filters.month} onChange={e=>setFilters(p=>({...p,month:e.target.value}))}><option value="">All Months</option>{MONTHS.map((m,i)=><option key={m} value={String(i+1).padStart(2,"0")}>{m}</option>)}</select></div>
+          <div><label>Year</label><select value={filters.year} onChange={e=>setFilters(p=>({...p,year:e.target.value}))}><option value="">All Years</option>{semYears.map(y=><option key={y}>{y}</option>)}</select></div>
+          <div style={{display:"flex",alignItems:"flex-end"}}><button className="ghost" onClick={()=>setFilters({country:"",month:"",year:""})}>Clear</button></div>
+        </div>
+        <p style={{fontFamily:S.bebas,fontSize:10,letterSpacing:2,color:"#888",marginBottom:12}}>{filtSems.length} SEMINARS FOUND</p>
+        {filtSems.length===0 && <Empty label="NONE"/>}
+        <div className="g2">{filtSems.map(s=><div key={s.id} className="sem-card">
+          <div className="s-eyebrow">{s.country} · {s.city}</div>
+          <div className="s-title">{s.title}</div>
+          <div style={{fontSize:12,color:"#888",marginBottom:8}}>{s.instructor}</div>
+          <p style={{fontSize:12,color:"#444",lineHeight:1.8,marginBottom:10}}>{s.description}</p>
+          <div style={{display:"flex",gap:12,fontSize:12,flexWrap:"wrap"}}>
+            <span>📅 {fmtS(s.date)}{s.endDate&&s.endDate!==s.date?` – ${fmtS(s.endDate)}`:""}</span>
+            <span style={{fontFamily:S.bebas,fontSize:18}}>{s.cost.toLocaleString()} {s.currency}</span>
+          </div>
+          <div style={{marginTop:8}}>{s.tags.map(t=><span key={t} className="tag" style={{cursor:"default"}}>{t}</span>)}</div>
+        </div>)}</div>
+      </>}
+
+      <Modal open={showRecModal} onClose={()=>setShowRecModal(false)} title="Record Attendance" wide>
+        <div className="fg"><label>Seminar Title</label><input placeholder="e.g. Tissier London Visit" value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))}/></div>
+        <div className="fr"><div className="fg"><label>City</label><input value={form.city} onChange={e=>setForm(p=>({...p,city:e.target.value}))}/></div><div className="fg"><label>Country</label><input value={form.country} onChange={e=>setForm(p=>({...p,country:e.target.value}))}/></div></div>
+        <div className="fr"><div className="fg"><label>Start</label><input type="date" value={form.startDate} onChange={e=>setForm(p=>({...p,startDate:e.target.value}))}/></div><div className="fg"><label>End</label><input type="date" value={form.endDate} onChange={e=>setForm(p=>({...p,endDate:e.target.value}))}/></div></div>
+        <div className="fr"><div className="fg"><label>Cost</label><input type="number" value={form.cost} onChange={e=>setForm(p=>({...p,cost:e.target.value}))}/></div><div className="fg"><label>Currency</label><select value={form.currency} onChange={e=>setForm(p=>({...p,currency:e.target.value}))}>{["USD","EUR","GBP","JPY","AUD","SGD","SEK","CAD"].map(c=><option key={c}>{c}</option>)}</select></div></div>
+        <div style={{marginBottom:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><label style={{margin:0}}>Instructors</label><button className="ghost sm" onClick={addInstr}>+ Add</button></div>
+          {form.instructors.map((inst,i)=>(
+            <div key={inst.id} style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-end"}}>
+              <div style={{flex:2}}>{i===0&&<label>Name</label>}<input placeholder="Name" value={inst.name} onChange={e=>updInstr(inst.id,"name",e.target.value)}/></div>
+              <div style={{flex:1}}>{i===0&&<label>Role</label>}<input placeholder="Role" value={inst.role} onChange={e=>updInstr(inst.id,"role",e.target.value)}/></div>
+              {form.instructors.length>1&&<button className="ghost sm" style={{color:"#c0392b",borderColor:"#c0392b"}} onClick={()=>remInstr(inst.id)}>✕</button>}
+            </div>
+          ))}
+        </div>
+        <div className="fa"><button className="ghost" onClick={()=>setShowRecModal(false)}>Cancel</button><button className="btn red" onClick={saveRec}>Save</button></div>
+      </Modal>
+
+      <Modal open={showAddModal} onClose={()=>setShowAddModal(false)} title="Add Seminar">
+        <div className="fg"><label>Title</label><input value={ns.title} onChange={e=>setNs(p=>({...p,title:e.target.value}))}/></div>
+        <div className="fg"><label>Instructor</label><input value={ns.instructor} onChange={e=>setNs(p=>({...p,instructor:e.target.value}))}/></div>
+        <div className="fr"><div className="fg"><label>Country</label><input value={ns.country} onChange={e=>setNs(p=>({...p,country:e.target.value}))}/></div><div className="fg"><label>City</label><input value={ns.city} onChange={e=>setNs(p=>({...p,city:e.target.value}))}/></div></div>
+        <div className="fr"><div className="fg"><label>Start Date</label><input type="date" value={ns.date} onChange={e=>setNs(p=>({...p,date:e.target.value}))}/></div><div className="fg"><label>End Date</label><input type="date" value={ns.endDate} onChange={e=>setNs(p=>({...p,endDate:e.target.value}))}/></div></div>
+        <div className="fr"><div className="fg"><label>Cost</label><input type="number" value={ns.cost} onChange={e=>setNs(p=>({...p,cost:e.target.value}))}/></div><div className="fg"><label>Currency</label><select value={ns.currency} onChange={e=>setNs(p=>({...p,currency:e.target.value}))}>{["USD","EUR","GBP","JPY","AUD","SGD","SEK","CAD"].map(c=><option key={c}>{c}</option>)}</select></div></div>
+        <div className="fg"><label>Description</label><textarea rows={3} value={ns.description} onChange={e=>setNs(p=>({...p,description:e.target.value}))}/></div>
+        <div className="fg"><label>Tags (comma separated)</label><input value={ns.tags} onChange={e=>setNs(p=>({...p,tags:e.target.value}))}/></div>
+        <div className="fa"><button className="ghost" onClick={()=>setShowAddModal(false)}>Cancel</button><button className="btn red" onClick={saveAvail}>Save</button></div>
+      </Modal>
+
+      <Modal open={!!showLearnModal} onClose={()=>setShowLearnModal(null)} title="Log a Learning">
+        <div className="fg"><label>Insight</label><textarea rows={4} value={learnForm.text} onChange={e=>setLearnForm(p=>({...p,text:e.target.value}))}/></div>
+        <div className="fg"><label>Tag Techniques</label><TechTags selected={learnForm.techniques} onToggle={t=>setLearnForm(p=>({...p,techniques:p.techniques.includes(t)?p.techniques.filter(x=>x!==t):[...p.techniques,t]}))} /></div>
+        <div className="fa"><button className="ghost" onClick={()=>setShowLearnModal(null)}>Cancel</button><button className="btn red" onClick={saveLearn}>Save</button></div>
+      </Modal>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MODULE 4 — GRADING JOURNEY
+   ════════════════════════════════════════════════════════════════════════ */
+function GradingJourney({ sessions, confidence, setConfidence }) {
+  const [activeGroup, setActiveGroup] = useState("All");
+
+  // Attendance: each session = 1 practice day, per syllabus requirement
+  const totalDays    = sessions.length;
+  const totalMinutes = sessions.reduce((a,s) => a + s.duration, 0);
+  const totalHours   = Math.round((totalMinutes / 60) * 10) / 10;
+  const pctDays      = Math.min(100, Math.round((totalDays / SYLLABUS.requiredDays) * 100));
+
+  const weeklyData = (() => {
+    const now  = new Date();
+    const weeks = [];
+    for (let w = 7; w >= 0; w--) {
+      const start = new Date(now); start.setDate(now.getDate() - w*7 - 6);
+      const end   = new Date(now); end.setDate(now.getDate() - w*7);
+      const startStr = start.toISOString().slice(0,10);
+      const endStr   = end.toISOString().slice(0,10);
+      const hrs = sessions.filter(s=>s.date>=startStr&&s.date<=endStr).reduce((a,s)=>a+s.duration,0)/60;
+      weeks.push({ label: fmtS(endStr), hrs: Math.round(hrs*10)/10 });
+    }
+    return weeks;
+  })();
+
+  const maxWeekHrs = Math.max(...weeklyData.map(w=>w.hrs), 2);
+
+  const groups = ["All", ...Object.keys(GROUP_COLORS)];
+  const visibleTechs = SYLLABUS.techniques.filter(t => activeGroup==="All" || t.group===activeGroup);
+
+  const avgConfidence = (() => {
+    const vals = SYLLABUS.techniques.map(t => confidence[t.id] || 0).filter(v=>v>0);
+    if (!vals.length) return 0;
+    return Math.round((vals.reduce((a,v)=>a+v,0)/vals.length)*10)/10;
+  })();
+  const readyCount = SYLLABUS.techniques.filter(t=>(confidence[t.id]||0)>=4).length;
+  const pctReady   = Math.round((readyCount/SYLLABUS.techniques.length)*100);
+
+  const setStars = (techId, stars) => setConfidence(prev => ({ ...prev, [techId]: stars }));
+
+  const Stars = ({ techId }) => {
+    const val = confidence[techId] || 0;
+    return (
+      <div style={{display:"flex",gap:3}}>
+        {[1,2,3,4,5].map(s => (
+          <button key={s} onClick={()=>setStars(techId, val===s ? 0 : s)}
+            style={{background:"none",border:"none",cursor:"pointer",padding:1,fontSize:16,lineHeight:1,
+              color:s<=val?"#c0392b":"#ddd", transition:"color .12s"}}>
+            ★
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div style={{background:"#fff",border:"1px solid #eee",borderTop:"3px solid #c0392b",padding:"18px 20px",marginBottom:22}}>
+        <div style={{fontFamily:S.bebas,fontSize:10,letterSpacing:3,color:"#888",marginBottom:6}}>GRADING PREPARATION</div>
+        <div style={{display:"flex",alignItems:"baseline",gap:14,flexWrap:"wrap"}}>
+          <div style={{fontFamily:S.bebas,fontSize:32,letterSpacing:4}}>{SYLLABUS.currentGrade}</div>
+          <div style={{fontFamily:S.bebas,fontSize:18,color:"#888",letterSpacing:2}}>→</div>
+          <div style={{fontFamily:S.bebas,fontSize:32,letterSpacing:4,color:"#c0392b"}}>{SYLLABUS.nextGrade}</div>
+        </div>
+        <div style={{fontSize:12,color:"#888",marginTop:4}}>{SYLLABUS.beltLabel} · Aikido Singapore curriculum · Focus on readiness for examination</div>
+      </div>
+
+      <div className="section-head"><div className="section-title">Attendance Tracker</div></div>
+      <div className="rule"/>
+
+      <div className="stats-row">
+        <div className="stat-box"><div className="stat-num">{totalDays}</div><div className="stat-lbl">Days Practiced</div></div>
+        <div className="stat-box red"><div className="stat-num red">{totalHours}<span style={{fontSize:16}}>h</span></div><div className="stat-lbl">Hours Logged</div></div>
+        <div className="stat-box"><div className="stat-num">{SYLLABUS.requiredDays}</div><div className="stat-lbl">Days Required</div></div>
+        <div className="stat-box"><div className="stat-num">{pctDays}<span style={{fontSize:16}}>%</span></div><div className="stat-lbl">Days Progress</div></div>
+      </div>
+
+      <div style={{background:"#fff",border:"1px solid #eee",padding:"16px 18px",marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+          <span style={{fontFamily:S.bebas,fontSize:11,letterSpacing:2,color:"#888"}}>DAYS OF PRACTICE TOWARD GRADING</span>
+          <span style={{fontFamily:S.bebas,fontSize:11,letterSpacing:2,color:"#c0392b"}}>{totalDays} / {SYLLABUS.requiredDays} days</span>
+        </div>
+        <div className="progress-bar" style={{height:10,borderRadius:4}}><div className="progress-fill" style={{width:pctDays+"%", borderRadius:4}}/></div>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+          <span style={{fontSize:11,color:"#888"}}>0 days</span>
+          <span style={{fontSize:11,color:"#888"}}>{Math.max(0,SYLLABUS.requiredDays-totalDays)} days remaining</span>
+        </div>
+
+        <div style={{marginTop:18}}>
+          <div style={{fontFamily:S.bebas,fontSize:10,letterSpacing:2,color:"#888",marginBottom:10}}>WEEKLY TRAINING (LAST 8 WEEKS)</div>
+          <div style={{display:"flex",alignItems:"flex-end",gap:6,height:60}}>
+            {weeklyData.map((w,i) => (
+              <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                <div style={{fontFamily:S.bebas,fontSize:9,color:"#888"}}>{w.hrs>0?w.hrs+"h":""}</div>
+                <div style={{width:"100%", background: w.hrs>0?"#c0392b":"#eee", height: Math.max(3, (w.hrs/maxWeekHrs)*44)+"px", opacity: w.hrs>0?1:0.4, borderRadius:"2px 2px 0 0", transition:"height .3s"}}/>
+                <div style={{fontFamily:S.bebas,fontSize:8,color:"#888",letterSpacing:1,textAlign:"center",lineHeight:1}}>{w.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="section-head" style={{marginTop:10}}><div className="section-title">Technique Confidence</div></div>
+      <div className="rule"/>
+
+      <div className="stats-row">
+        <div className="stat-box"><div className="stat-num">{SYLLABUS.techniques.length}</div><div className="stat-lbl">Techniques Required</div></div>
+        <div className="stat-box red"><div className="stat-num red">{avgConfidence}<span style={{fontSize:16}}>/5</span></div><div className="stat-lbl">Avg Confidence</div></div>
+        <div className="stat-box"><div className="stat-num">{readyCount}</div><div className="stat-lbl">Exam-Ready (4★+)</div></div>
+        <div className="stat-box"><div className="stat-num">{pctReady}<span style={{fontSize:16}}>%</span></div><div className="stat-lbl">Overall Readiness</div></div>
+      </div>
+
+      <div style={{background:"#fff",border:"1px solid #eee",padding:"12px 18px",marginBottom:18}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+          <span style={{fontFamily:S.bebas,fontSize:11,letterSpacing:2,color:"#888"}}>OVERALL EXAM READINESS</span>
+          <span style={{fontFamily:S.bebas,fontSize:11,letterSpacing:2,color:"#c0392b"}}>{pctReady}%</span>
+        </div>
+        <div className="progress-bar" style={{height:8,borderRadius:4}}><div className="progress-fill" style={{width:pctReady+"%", borderRadius:4}}/></div>
+        <div style={{fontSize:11,color:"#888",marginTop:4}}>Techniques rated 4★ or higher are considered exam-ready</div>
+      </div>
+
+      <div className="cat-bar">
+        {groups.map(g => {
+          const gc = GROUP_COLORS[g];
+          return (
+            <button key={g} className={"cat-tab"+(activeGroup===g?" on":"")}
+              style={activeGroup===g && gc ? {color:gc.color, borderBottomColor:gc.color} : {}}
+              onClick={()=>setActiveGroup(g)}>
+              {g}
+            </button>
+          );
+        })}
+      </div>
+
+      {(() => {
+        const attackGroups = {};
+        visibleTechs.forEach(t => { if (!attackGroups[t.attack]) attackGroups[t.attack] = []; attackGroups[t.attack].push(t); });
+        return Object.entries(attackGroups).map(([attack, techs]) => (
+          <div key={attack} style={{marginBottom:20}}>
+            <div style={{fontFamily:S.bebas,fontSize:12,letterSpacing:3,color:"#888",textTransform:"uppercase",borderBottom:"1px solid #eee",paddingBottom:5,marginBottom:10}}>{attack}</div>
+            {techs.map(t => {
+              const gc = GROUP_COLORS[t.group];
+              const conf = confidence[t.id] || 0;
+              const confLabel = CONF_LABELS[conf];
+              const confColor = CONF_COLORS[conf];
+              return (
+                <div key={t.id} className="tech-conf-row" style={{borderLeft:"3px solid "+(gc?gc.color:"#eee")}}>
+                  <div style={{flex:1,minWidth:200}}>
+                    <div style={{fontWeight:700,fontSize:14,marginBottom:1}}>{t.name}</div>
+                    <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                      <span style={{fontSize:10,fontWeight:600,padding:"1px 7px",borderRadius:2,background:gc?gc.bg:"#f0f0f0",color:gc?gc.color:"#555"}}>{t.group}</span>
+                      {t.notes && <span style={{fontSize:11,color:"#888",fontStyle:"italic"}}>{t.notes}</span>}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <span style={{fontSize:11,fontWeight:600,color:confColor,minWidth:80,textAlign:"right"}}>{confLabel}</span>
+                    <Stars techId={t.id}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ));
+      })()}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MODULE 5 — ENCYCLOPEDIA
+   ════════════════════════════════════════════════════════════════════════ */
+function Encyclopedia({techniquesDB, setTechniquesDB}) {
+  const [detail, setDetail]   = useState(null);
+  const [search, setSearch]   = useState("");
+  const [cat, setCat]         = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [nt, setNt]           = useState({name:"",category:"Throwing",attack:"",description:"",videoUrl:"",tags:""});
+
+  const cats     = [...new Set(techniquesDB.map(t=>t.category))];
+  const filtered = techniquesDB.filter(t=>{
+    const q = search.toLowerCase();
+    if (q && !t.name.toLowerCase().includes(q) && !t.description.toLowerCase().includes(q)) return false;
+    if (cat && t.category!==cat) return false;
+    return true;
+  });
+
+  const save = () => {
+    if (!nt.name.trim()) return;
+    setTechniquesDB(p=>[...p,{...nt,id:uid(),tags:nt.tags.split(",").map(t=>t.trim()).filter(Boolean)}]);
+    setNt({name:"",category:"Throwing",attack:"",description:"",videoUrl:"",tags:""});
+    setShowAdd(false);
+  };
+
+  return (
+    <div>
+      <div className="section-head">
+        <div className="section-title">Encyclopedia</div>
+        <button className="btn red" onClick={()=>setShowAdd(true)}>+ Add Technique</button>
+      </div>
+      <div className="rule"/>
+      <div className="filter-row">
+        <div><label>Search</label><input placeholder="Name or description…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
+        <div><label>Category</label><select value={cat} onChange={e=>setCat(e.target.value)}><option value="">All Categories</option>{cats.map(c=><option key={c}>{c}</option>)}</select></div>
+      </div>
+      {filtered.length===0 && <Empty label="ENC"/>}
+      <div className="g3">
+        {filtered.map(t=>(
+          <div key={t.id} className="enc-card" onClick={()=>setDetail(t)}>
+            <div style={{fontFamily:S.bebas,fontSize:10,letterSpacing:3,color:"#888",marginBottom:3}}>{t.category}</div>
+            <div style={{fontWeight:700,fontSize:19,marginBottom:2}}>{t.name}</div>
+            <div style={{fontSize:11,color:"#c0392b",fontWeight:600,marginBottom:7}}>{t.attack}</div>
+            <div style={{fontSize:12,lineHeight:1.8,color:"#444",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical"}}>{t.description}</div>
+            <div style={{marginTop:8}}>{t.tags.map(tag=><span key={tag} className="tag" style={{cursor:"default"}}>{tag}</span>)}</div>
+          </div>
+        ))}
+      </div>
+
+      <Modal open={!!detail} onClose={()=>setDetail(null)}>
+        {detail && <>
+          <div style={{fontFamily:S.bebas,fontSize:10,letterSpacing:3,color:"#c0392b",marginBottom:4}}>{detail.category} · {detail.attack}</div>
+          <div style={{fontWeight:700,fontSize:28,marginBottom:12}}>{detail.name}</div>
+          <p style={{fontSize:13,lineHeight:1.85,color:"#444"}}>{detail.description}</p>
+          <div style={{marginTop:10}}>{detail.tags.map(t=><span key={t} className="tag" style={{cursor:"default"}}>{t}</span>)}</div>
+          {detail.videoUrl
+            ? <iframe style={{width:"100%",aspectRatio:"16/9",border:"none",marginTop:14}} src={detail.videoUrl} allowFullScreen/>
+            : <div className="video-ph">No video linked yet</div>}
+        </>}
+      </Modal>
+
+      <Modal open={showAdd} onClose={()=>setShowAdd(false)} title="Add Technique">
+        <div className="fr"><div className="fg"><label>Name</label><input value={nt.name} onChange={e=>setNt(p=>({...p,name:e.target.value}))}/></div><div className="fg"><label>Category</label><select value={nt.category} onChange={e=>setNt(p=>({...p,category:e.target.value}))}>{["Throwing","Pinning","Breath Power","Weapons","Other"].map(c=><option key={c}>{c}</option>)}</select></div></div>
+        <div className="fg"><label>Attack / Entry</label><input value={nt.attack} onChange={e=>setNt(p=>({...p,attack:e.target.value}))}/></div>
+        <div className="fg"><label>Description</label><textarea rows={4} value={nt.description} onChange={e=>setNt(p=>({...p,description:e.target.value}))}/></div>
+        <div className="fg"><label>YouTube Embed URL</label><input value={nt.videoUrl} onChange={e=>setNt(p=>({...p,videoUrl:e.target.value}))}/></div>
+        <div className="fg"><label>Tags (comma separated)</label><input value={nt.tags} onChange={e=>setNt(p=>({...p,tags:e.target.value}))}/></div>
+        <div className="fa"><button className="ghost" onClick={()=>setShowAdd(false)}>Cancel</button><button className="btn red" onClick={save}>Save Technique</button></div>
+      </Modal>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   APP SHELL
+   ════════════════════════════════════════════════════════════════════════ */
+const TABS = [
+  {id:"log",     label:"Training Log"},
+  {id:"journal", label:"Learning Journal"},
+  {id:"sem",     label:"Seminars"},
+  {id:"grade",   label:"Grading Journey"},
+  {id:"enc",     label:"Encyclopedia"},
+];
+
+function DojoApp({ user, userData, logout, updateUserData }) {
+  const [tab, setTab] = useState("log");
+
+  // Each setter updates the slice of userData under this account, then
+  // pushes the whole thing back up through updateUserData.
+  const setSessions      = (updater) => updateUserData(d => ({ ...d, sessions: typeof updater==="function" ? updater(d.sessions) : updater }));
+  const setSemRecords    = (updater) => updateUserData(d => ({ ...d, semRecords: typeof updater==="function" ? updater(d.semRecords) : updater }));
+  const setAvailSeminars = (updater) => updateUserData(d => ({ ...d, availSeminars: typeof updater==="function" ? updater(d.availSeminars) : updater }));
+  const setGrades        = (updater) => updateUserData(d => ({ ...d, grades: typeof updater==="function" ? updater(d.grades) : updater }));
+  const setTechniquesDB  = (updater) => updateUserData(d => ({ ...d, techniquesDB: typeof updater==="function" ? updater(d.techniquesDB) : updater }));
+  const setConfidence    = (updater) => updateUserData(d => ({ ...d, confidence: typeof updater==="function" ? updater(d.confidence) : updater }));
+
+  if (!userData) return null; // guards against a render race on logout
+
+  return (
+    <div className="app-wrap">
+      <div className="grid-bg"/>
+      <header className="hdr">
+        <div className="hdr-in">
+          <div className="logo-row">
+            <Logo/>
+            <div>
+              <div className="wordmark">AIKI<span>DOJO</span></div>
+              <div className="tagline">Training · Learning · Practice</div>
+            </div>
+          </div>
+          <div className="user-chip">
+            <span className="user-name">{user.displayName}</span>
+            <button className="logout-btn" onClick={logout}>Log Out</button>
+          </div>
+        </div>
+      </header>
+      <nav className="nav">
+        <div className="nav-in">
+          {TABS.map(t => (
+            <button key={t.id} className={"ntab"+(tab===t.id?" on":"")} onClick={()=>setTab(t.id)}>{t.label}</button>
+          ))}
+        </div>
+      </nav>
+      <main className="main">
+        <div className="main-inner">
+          {tab==="log"     && <TrainingLog sessions={userData.sessions} setSessions={setSessions} confidence={userData.confidence} setConfidence={setConfidence}/>}
+          {tab==="journal" && <LearningJournal sessions={userData.sessions} setSessions={setSessions} confidence={userData.confidence} setConfidence={setConfidence}/>}
+          {tab==="sem"     && <Seminars semRecords={userData.semRecords} setSemRecords={setSemRecords} availSeminars={userData.availSeminars} setAvailSeminars={setAvailSeminars}/>}
+          {tab==="grade"   && <GradingJourney sessions={userData.sessions} confidence={userData.confidence} setConfidence={setConfidence}/>}
+          {tab==="enc"     && <Encyclopedia techniquesDB={userData.techniquesDB} setTechniquesDB={setTechniquesDB}/>}
+        </div>
+      </main>
+      <footer className="ftr">AikiDojo &nbsp;·&nbsp; Train with intention &nbsp;·&nbsp; Learn without end</footer>
+    </div>
+  );
+}
+
+function App() {
+  const { user, userData, authError, signup, login, logout, updateUserData } = useLocalAuth();
+
+  if (!user) {
+    return <AuthScreen signup={signup} login={login} authError={authError}/>;
+  }
+
+  return <DojoApp user={user} userData={userData} logout={logout} updateUserData={updateUserData}/>;
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+
+
+
+
+
+
+
+
+</body>
+</html>
